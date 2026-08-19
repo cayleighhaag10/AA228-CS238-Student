@@ -1,8 +1,8 @@
 # AA228-CS238-Student
-[![AA228/CS238 Gradescope](https://img.shields.io/badge/aa228%2Fcs238-gradescope-green?color=42a0a2)](https://www.gradescope.com/courses/814395)
+[![AA228/CS238 Gradescope](https://img.shields.io/badge/aa228%2Fcs238-gradescope-green?color=42a0a2)](https://www.gradescope.com/courses/1338881)
 
 
-[AA228/CS238: Decision Making under Uncertainty](https://aa228.stanford.edu), Autumn 2025, Stanford University.
+[AA228/CS238: Decision Making under Uncertainty](https://aa228.stanford.edu), Autumn 2026, Stanford University.
 
 This repository provides starter code and data for Projects 1 and 2.
 
