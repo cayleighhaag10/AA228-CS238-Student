@@ -1,6 +1,6 @@
 import sys
 
-import networkx
+import networkx as nx
 import numpy as np
 import csv
 
@@ -8,14 +8,14 @@ class Variable:
     def __init__(self, max_val):
         self.max_val = max_val
 
-def write_gph(dag, idx2names, filename):
+def write_gph(dag, filename):
     with open(filename, 'w') as f:
         for edge in dag.edges():
-            f.write("{}, {}\n".format(idx2names[edge[0]], idx2names[edge[1]]))
+            f.write("{}, {}\n".format(edge[0], edge[1]))
 
 
 def get_file_info(infile):
-    # Get data from infile
+    # Variables
     header = []
     # (data points x number of variables)
     data = []
@@ -36,12 +36,11 @@ def get_file_info(infile):
         max_val = max(col)
         vars.append(Variable(max_val))
 
-    # Create dictionary mapping index to node names
-    idx2names = {}
-    for idx, node_name in enumerate(header):
-        idx2names[idx] = node_name
+    # Create an inital graph, start with no edges
+    G = nx.DiGraph()
+    G.add_nodes_from(header)
 
-    return header, data, vars, idx2names
+    return inital_G, header, data, vars
 
 
 def sub2ind(parents_max_vals, parents_values):
@@ -84,7 +83,7 @@ def get_score(vars, G, data):
     # TO DO
 
 def rand_graph_neighbor(G):
-    # TO DO
+    
 
 def fit(G, vars, data, max_iters):
     y = get_score(vars, G, data)
@@ -109,20 +108,14 @@ def fit(G, vars, data, max_iters):
 
 
 def compute(infile, outfile, max_iters):
-    # WRITE YOUR CODE HERE
-    # FEEL FREE TO CHANGE ANYTHING ANYWHERE IN THE CODE
-    # THIS INCLUDES CHANGING THE FUNCTION NAMES, MAKING THE CODE MODULAR, BASICALLY ANYTHING
-    
     # Get info about the infile
-    header, data, vars, idx2names = get_file_info(infile)
-
-    # TO DO - define inital graph G
+    inital_G, header, data, vars = get_file_info(infile)
 
     # Run locally, directed graph search. Oportunistically move to random graph neightbor
     # if it's Baysian Score is greater. 
-    G = fit(G, vars, data, max_iters)
+    G = fit(inital_G, vars, data, max_iters)
        
-    return G, idx2names
+    return G
 
 
 def main():
@@ -131,10 +124,10 @@ def main():
 
     inputfilename = sys.argv[1]
     outputfilename = sys.argv[2]
-    G, idx2names = compute(inputfilename, outputfilename, 1000)
+    G = compute(inputfilename, outputfilename, 1000)
 
     # Write edges of dag to output file
-    write_gph(G, idx2names, outputfilename + '.gph')
+    write_gph(G, outputfilename + '.gph')
 
 
 if __name__ == '__main__':
