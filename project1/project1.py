@@ -80,7 +80,35 @@ def get_statistics(vars, graph, data):
     
     return M
 
-def compute(infile, outfile):
+def get_score(vars, G, data):
+    # TO DO
+
+def rand_graph_neighbor(G):
+    # TO DO
+
+def fit(G, vars, data, max_iters):
+    y = get_score(vars, G, data)
+
+    # Repeat for max_iters
+    for k in max_iters:
+        # Get a random graph neighbor of G
+        rand_G_neighbor = rand_graph_neighbor(G)
+
+        # If random graph has a cycle, it is invalid. Assign a score of -infinity
+        new_y = -np.inf
+        if (not nx.is_directed_acyclic_graph(rand_G_neighbor)):
+            new_y = get_score(vars, rand_G_neighbor, data)
+        
+        # If random graph yields a better score than G, replace G with it
+        if new_y > y:
+            y = new_y
+            G = rand_G_neighbor
+            
+    # Return best graph found after max_iter iterations
+    return G
+
+
+def compute(infile, outfile, max_iters):
     # WRITE YOUR CODE HERE
     # FEEL FREE TO CHANGE ANYTHING ANYWHERE IN THE CODE
     # THIS INCLUDES CHANGING THE FUNCTION NAMES, MAKING THE CODE MODULAR, BASICALLY ANYTHING
@@ -88,9 +116,13 @@ def compute(infile, outfile):
     # Get info about the infile
     header, data, vars, idx2names = get_file_info(infile)
 
-    
-   
-    return idx2names
+    # TO DO - define inital graph G
+
+    # Run locally, directed graph search. Oportunistically move to random graph neightbor
+    # if it's Baysian Score is greater. 
+    G = fit(G, vars, data, max_iters)
+       
+    return G, idx2names
 
 
 def main():
@@ -99,10 +131,10 @@ def main():
 
     inputfilename = sys.argv[1]
     outputfilename = sys.argv[2]
-    dag, idx2names = compute(inputfilename, outputfilename)
+    G, idx2names = compute(inputfilename, outputfilename, 1000)
 
     # Write edges of dag to output file
-    write_gph(dag, idx2names, outputfilename + '.gph')
+    write_gph(G, idx2names, outputfilename + '.gph')
 
 
 if __name__ == '__main__':
