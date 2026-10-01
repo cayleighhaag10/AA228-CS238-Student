@@ -3,6 +3,10 @@ import sys
 import networkx as nx
 import numpy as np
 import csv
+from scipy.special import gammaln
+import random
+
+n = 0
 
 class Variable:
     def __init__(self, max_val):
@@ -27,11 +31,13 @@ def get_file_info(infile):
         for row in reader:
             data.append([int(x) for x in row])
     
+    # Set global number of variables
+    n = len(header)
+
     # For each variable, store it's maximum instantiation value over all data points
     vars = []
     num_data_points = len(data)
-    num_vars = len(data[0])
-    for var_idx in range(num_vars):
+    for var_idx in range(n):
         col = [data[i][var_idx] for i in range(num_data_points)]
         max_val = max(col)
         vars.append(Variable(max_val))
@@ -48,11 +54,7 @@ def sub2ind(parents_max_vals, parents_values):
     return np.dot(k, parents_values)
 
 
-# Assume a uniform prior over all graphs
 def get_statistics(vars, graph, data):
-    # Number of variables
-    n = len(data[0])
-
     # Max value of each variable
     r = [vars[var].max_val for var in range(n)]
 
@@ -77,13 +79,60 @@ def get_statistics(vars, graph, data):
             # Update counts
             M[var][parent_combo, val_var] += 1.0
     
-    return M
+    # Now get the prior, assume uniform (all entries = 1)
+    prior = [ones(q[var], r[var]) for var range(n)]
+    
+    return M, prior
+
+
+# Assuming uniform prior so we drop log P(G)
+def bayesian_score_component(M, prior):
+    p = np.sum(gammaln(np.sum(prior, axis=2)))
+    p -= np.sum(gammaln(np.sum(prior, axis=2) + np.sum(M, axis=2)))
+    p += np.sum(gammaln(prior + M))
+    p -= np.sum(gammaln(prior))
+    return p
 
 def get_score(vars, G, data):
-    # TO DO
+    M, prior = get_statistics_and_prior(vars, G, data)
+
+    # Sum the bayesian score components of each variable, using that variable's
+    # prior & that variable's associated counts
+    return sum(bayesian_score_component(M[i], prior[i]) for i in range(n))
+
 
 def rand_graph_neighbor(G):
+    nodes = list(G.nodes)
+    node_1 = random.choice(nodes)
+    nodes_without_node_1 = [node for node in nodes if node != node_1]
+    node_2 = random.choice(nodes_without_node_1)
     
+    # Create a copy so we do not mutate original graph 
+    G_cpy = G.copy()
+
+    # Preform some graph mutation
+    if G.has_edge(node_1, node_2):
+        # Remove edge half the time
+        if (random.randint(0, 1)):
+            G_cpy.remove_edge(node_1, node_2)
+        # Reverse edge half the time
+        else: 
+            G_cpy.remove_edge(node_1, node_2)
+            G_cpy.add_edge(node_2, node_1)
+    elif G.has_edge(node_2, node_1):
+        # Remove edge half the time
+        if (random.randint(0, 1)):
+            G_cpy.remove_edge(node_2, node_1)
+        # Reverse edge half the time
+        else: 
+            G_cpy.remove_edge(node_2, node_1)
+            G_cpy.add_edge(node_1, node_2)
+    else:
+        G_cpy.add_edge(node_1, node_2)
+
+    return G_cpy
+
+
 
 def fit(G, vars, data, max_iters):
     y = get_score(vars, G, data)
@@ -128,6 +177,8 @@ def main():
 
     # Write edges of dag to output file
     write_gph(G, outputfilename + '.gph')
+
+    # TO DO - check what other output we might need to create
 
 
 if __name__ == '__main__':
