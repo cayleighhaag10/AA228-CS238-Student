@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 import time
 
 class Variable:
-    def __init__(self, name, max_val):
-        self.name = name
+    def __init__(self, max_val):
         self.max_val = max_val
 
 def write_gph(dag, idx2names, filename):
@@ -39,7 +38,7 @@ def get_file_info(infile):
     for var_idx in range(n):
         col = [data[i][var_idx] for i in range(num_data_points)]
         max_val = max(col)
-        vars.append(Variable(header[var_idx], max_val))
+        vars.append(Variable(max_val))
 
     # Create an inital graph, start with no edges
     inital_G = nx.DiGraph()
